@@ -49,21 +49,25 @@ sudo chown -R tomcat.tomcat /usr/local/tomcat
 echo "=========== create tomcat service file ==============="
 sudo tee /etc/systemd/system/tomcat.service > /dev/null <<EOF && echo "✅ Tomcat service file ready"
 [Unit]
-Description=Tomcat
+Description=Apache Tomcat Web Application Container
 After=network.target
 
 [Service]
-User=tomcat
-WorkingDirectory=/usr/local/tomcat
-Environment=JAVA_HOME=/usr/lib/jvm/java-11-openjdk
-Environment=JRE_HOME=/usr/lib/jvm/java-11-openjdk
-Environment=CATALINA_HOME=/usr/local/tomcat
-Environment=CATALINA_BASE=/usr/local/tomcat
-ExecStart=/usr/local/tomcat/bin/catalina.sh run
-ExecStop=/usr/local/tomcat/bin/catalina.sh stop
-SyslogIdentifier=tomcat-%i
-Restart=on-failure
+Type=forking
 
+User=tomcat
+Group=tomcat
+Environment="JAVA_HOME=/usr/lib/jvm/java-11-openjdk"
+Environment="CATALINA_PID=/usr/local/tomcat/temp/tomcat.pid"
+Environment="CATALINA_HOME=/usr/local/tomcat"
+Environment="CATALINA_BASE=/usr/local/tomcat"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+Environment="JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+
+ExecStart=/usr/local/tomcat/bin/startup.sh
+ExecStop=/usr/local/tomcat/bin/shutdown.sh
+
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
